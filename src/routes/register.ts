@@ -43,7 +43,23 @@ export default function routes(fastify: FastifyInstance, options: any, done: Fun
     } 
   });
 
-  
+  fastify.delete('/register', async (request, reply) => {
+    try{
+      const { email }: { email: string } = request.body as any;  
+      
+      await sql`SELECT * FROM users WHERE email = ${email}`
+      .then(async (result) => {
+        if (result.length === 0) {
+          return reply.status(404).send({message: "User not found"})
+        }
+        await sql`DELETE FROM users WHERE email = ${email}`
+        return reply.status(200).send({message: "User deleted successfully"})
+      })
+    }
+    catch(error){
+      return reply.status(400).send({message: "Invalid payload"})
+    }
+  });  
 
   done();
 }
