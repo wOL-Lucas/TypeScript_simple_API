@@ -23,7 +23,27 @@ export default function routes(fastify: FastifyInstance, options: any, done: Fun
       console.log(error)
       return reply.status(400).send({message: "Invalid payload"})
     }
-  })
+  });
+
+  fastify.put('/register', async (request, reply) =>{
+    
+    try{
+      const { email, password } = User.parse(request.body);
+      await sql`SELECT * FROM users WHERE email = ${email}`
+      .then(async (result) => {
+        if (result.length === 0) {
+          return reply.status(404).send({message: "User not found"})
+        }
+        await sql`UPDATE users SET password = ${password} WHERE email = ${email}`
+        return reply.status(200).send({message: "Password updated successfully"})
+      })
+    }
+    catch(error){
+      return reply.status(400).send({message: "Invalid payload"})
+    } 
+  });
+
+  
 
   done();
 }
