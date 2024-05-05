@@ -1,13 +1,15 @@
 import { FastifyInstance } from 'fastify';
 import { sql } from '../lib/postgres';
 import  User  from '../entities/user';
+import bcrypt from 'bcrypt';
 
 export default function routes(fastify: FastifyInstance, options: any, done: Function){
   fastify.post('/register', async (request, reply) => {
     try {
       const { email, password } = User.parse(request.body);
-      
-      await sql`INSERT INTO users (email, password) VALUES (${email}, ${password})`
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await sql`INSERT INTO users (email, password) VALUES (${email}, ${hashedPassword})`
       .then(() => {
         return reply.status(201).send({message: "User created successfully"})
       })
@@ -34,7 +36,9 @@ export default function routes(fastify: FastifyInstance, options: any, done: Fun
         if (result.length === 0) {
           return reply.status(404).send({message: "User not found"})
         }
-        await sql`UPDATE users SET password = ${password} WHERE email = ${email}`
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await sql`UPDATE users SET password = ${hashedPassword} WHERE email = ${email}`
         return reply.status(200).send({message: "Password updated successfully"})
       })
     }
