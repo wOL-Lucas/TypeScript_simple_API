@@ -13,7 +13,7 @@ export default async function auth(request: FastifyRequest, reply: FastifyReply)
       return reply.status(401).send({ message: "No token provided" })
     }
 
-    let noBearerToken = token.includes("Bearer ") ? token.replace("Bearer ", "") : token.replace("bearer ", "");
+    let noBearerToken = token.split(" ")[1];
     
     if(!jwt.verify(noBearerToken, String(process.env.JWT_TOKEN))){
       return reply.status(401).send({ message: "Invalid token" })
